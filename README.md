@@ -19,6 +19,17 @@ Tested distros:
 - Arch
 - OpenSUSE
 
+
+## Unstable and beta version
+The Unstable/Beta version of 1.1 is here but it has some issues like sometimes it simply doesn't work on debian
+
+Distros tested for the beta version:
+- Fedora (Fully works)
+- Debian (Has minor issues probably with the environment might not be the actual app)
+- OpenSUSE (Fully works)
+
+
+
 ## Building
 ```sh
 git clone https://github.com/Coderx202/Bareinfo.git
