@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include <vector>
+#include <cstdlib> 
 
 namespace fs = std::filesystem;
 
@@ -151,12 +152,56 @@ std::string BuildInfo(){
     return line;
 }
 
-
-int main(){
+void ExportToFile(){
 
     BIOSInfo bios;
     MotherboardInfo Motherboard;
     CPUInfo CPU;
+
+
+    std::ofstream file("bareinfo.txt");
+
+    file << "CPU Model:          " << CPU.getCPUName() << "\n";
+    file << "CPU Cores:          " << CPU.getCPUCores() << "\n";
+    file << "CPU Vendor:         " << CPU.getCPUVendor() << "\n";
+    file << "BIOS/UEFI Vendor:   " << bios.getBIOSVendor() << "\n";
+    file << "BIOS/UEFI Version:  " << bios.getBIOSVersion() << "\n";
+    file << "BIOS/UEFI Date:     " << bios.getBIOSDate() << "\n";
+    file << "BIOS/UEFI Release:  " << bios.getBIOSRelease() << "\n";
+
+    file << "Motherboard Name:   " << Motherboard.getMotherboardName() << "\n";
+    file << "Motherboard Vendor: " << Motherboard.getMotherboardVendor() << "\n";
+
+    file << "System Vendor:      " << Motherboard.getSystemVendor() << "\n";
+    file << "Product Name:       " << Motherboard.getProductName() << "\n";
+
+    file << "Kernel:             " << getKernelInfo() << "\n";
+    file << "Default Shell:      " << shell() << "\n";
+    file << "Build Info:         " << BuildInfo() << "\n";
+    file << "Package Manager:    " << getPackageManager() << "\n";
+
+    file.close();
+}
+
+
+int main(int argc, char *argv[]){
+
+    BIOSInfo bios;
+    MotherboardInfo Motherboard;
+    CPUInfo CPU;
+
+
+    if (argc > 1) {
+            std::string arg1 = argv[1];
+
+            if (arg1 == "--export-to-file || --export || -export") {
+                ExportToFile();
+                exit(0);
+            } else {
+                std::cerr << "Unknown argument: " << arg1 << std::endl;
+                exit(1);
+            }
+    }
 
     const std::string RED    = "\033[31m";
     const std::string GREEN  = "\033[32m";
@@ -187,4 +232,7 @@ int main(){
     std::cout << YELLOW << "Default Shell:      " << RESET << shell() << "\n";
     std::cout << YELLOW << "Build Info:         " << RESET << BuildInfo() << "\n";
     std::cout << YELLOW << "Package Manager:    " << RESET << getPackageManager() << "\n";
+
+
+
 }
