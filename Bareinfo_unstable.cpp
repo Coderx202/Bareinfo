@@ -46,6 +46,7 @@ private:
         }
         return "N/A";
     }
+
 };
 
 
@@ -80,14 +81,14 @@ void meminfo(){
     }
 }
 
-void CheckSecureBoot(){
+std::string CheckSecureBoot(){
     int ret = system("mokutil --sb-state 2>/dev/null | grep -q 'SecureBoot enabled'");
 
     if(ret == 0){
-        std::cout << "Secure Boot:        Enabled\n";
+        return "Secure Boot:        Enabled\n";
     }
     else {
-        std::cout << "Secure boot:        Disabled\n";
+        return "Secure boot:        Disabled\n";
     }
 
 
@@ -149,7 +150,24 @@ std::string BuildInfo(){
     std::string line;
     
     std::getline(build, line);
+    if (line.empty()){
+        return "N/A";
+    }
     return line;
+}
+
+std::string getDistroInfo(){
+
+    std::ifstream file("/etc/os-release");
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.find("PRETTY_NAME") != std::string::npos) {
+            return line.substr(line.find("=") + 1);
+        }
+    }
+
+    return "N/A"; 
+
 }
 
 void ExportToFile(){
@@ -194,7 +212,7 @@ int main(int argc, char *argv[]){
     if (argc > 1) {
             std::string arg1 = argv[1];
 
-            if (arg1 == "--export-to-file") {
+            if (arg1 == "--export-to-file" || "-export" || "--export") {
                 ExportToFile();
                 exit(0);
             } else {
@@ -209,7 +227,7 @@ int main(int argc, char *argv[]){
     const std::string CYAN   = "\033[36m";
     const std::string YELLOW = "\033[33m";
     const std::string RESET  = "\033[0m";
-
+    const std::string MAGENTA = "\033[35m";
     std::cout << BLUE << "CPU Model:          " << RESET << CPU.getCPUName() << "\n";
     std::cout << BLUE << "CPU Cores:          " << RESET << CPU.getCPUCores() << "\n";
     std::cout << BLUE << "CPU Vendor:         " << RESET << CPU.getCPUVendor() << "\n";
@@ -232,7 +250,5 @@ int main(int argc, char *argv[]){
     std::cout << YELLOW << "Default Shell:      " << RESET << shell() << "\n";
     std::cout << YELLOW << "Build Info:         " << RESET << BuildInfo() << "\n";
     std::cout << YELLOW << "Package Manager:    " << RESET << getPackageManager() << "\n";
-
-
-
+    std::cout << MAGENTA << "Distro name:       " << RESET << getDistroInfo() << "\n";
 }
