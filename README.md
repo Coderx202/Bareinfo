@@ -8,7 +8,8 @@ A Simple tool to see your system info for almost all Linux distro
 - Shows product name (laptop or computer name)
 - Shows kernel and build info
 - Shows Package manager name
-- Doesn't need sudo privileges 
+- Doesn't need sudo privileges
+- Allows user to export the output to a file
 
 ## Compatibility
 This program works with most distros out of the box, but distros like alpine and containers are not supported due to alpine missing some stuff and the same for containers but VM's are semi supported
@@ -21,12 +22,7 @@ Tested distros:
 
 
 ## Unstable and beta version
-The Unstable/Beta version of 1.1 is here but it has some issues like sometimes it simply doesn't work on debian
-
-Distros tested for the beta version:
-- Fedora (Fully works)
-- Debian (Has minor issues probably with the environment might not be the actual app)
-- OpenSUSE (Fully works)
+The Unstable/Beta version of 1.2 is not available eyet
 
 
 
