@@ -194,7 +194,7 @@ int main(int argc, char *argv[]){
     if (argc > 1) {
             std::string arg1 = argv[1];
 
-            if (arg1 == "--export-to-file || --export || -export") {
+            if (arg1 == "--export-to-file" || "--export" || "-export") {
                 ExportToFile();
                 exit(0);
             } else {
