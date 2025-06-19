@@ -22,7 +22,7 @@ Tested distros:
 
 
 ## Unstable and beta version
-The Unstable/Beta version of 1.2 is not available eyet
+The Unstable/Beta version of 1.2 is not available yet
 
 
 
@@ -36,4 +36,10 @@ g++ -o bareinfo Bareinfo.cpp
 Simply type in this command in the same directory as the executable
 ```sh
 ./bareinfo
+```
+If you want to export the output to a file don't use the right and left bitwise operators because of the ANSI escape codes instead type
+```sh
+./bareinfo --export-to-file #First way
+./bareinfo -export #second way
+./bareinfo --export #third way
 ```
