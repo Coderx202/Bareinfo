@@ -29,6 +29,14 @@ cd Bareinfo
 g++ -o bareinfo Bareinfo.cpp
 ```
 ## Usage
+if you have downloaded the binary from the release do these steps to execute the app
+
+```sh
+chmod +x Bareinfo
+./Bareinfo
+```
+
+
 Simply type in this command in the same directory as the executable
 ```sh
 ./bareinfo
