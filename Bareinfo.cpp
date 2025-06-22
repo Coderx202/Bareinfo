@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <vector>
 #include <cstdlib> 
+#include <cmath>
 
 namespace fs = std::filesystem;
 
@@ -46,6 +47,7 @@ private:
         }
         return "N/A";
     }
+
 };
 
 
@@ -69,25 +71,16 @@ private:
 };
 
 
-void meminfo(){
-    std::ifstream file("/proc/meminfo");
-    std::string line;
-    while (std::getline(file, line)) {
-        if (line.find("MemTotal") != std::string::npos) {
-            std::cout << "Total RAM:          " << line.substr(line.find(":") + 8) << std::endl;
-            break;
-        }
-    }
-}
 
-void CheckSecureBoot(){
+
+bool CheckSecureBoot(){
     int ret = system("mokutil --sb-state 2>/dev/null | grep -q 'SecureBoot enabled'");
 
     if(ret == 0){
-        std::cout << "Secure Boot:        Enabled\n";
+        return true;
     }
     else {
-        std::cout << "Secure boot:        Disabled\n";
+        return false;
     }
 
 
@@ -141,7 +134,34 @@ std::string getPackageManager() {
     return "unknown";
 }
 
+double getRAMInfo(const std::string &arg){
 
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key;
+    long value;
+    std::string unit;
+
+    if (arg == "RAM"){
+            while (meminfo >> key >> value >> unit) {
+        if (key == "MemTotal:") {
+            double gb = value / 1048576.0;
+            return gb;
+        }
+    }
+    }
+
+    if (arg == "FREE"){
+            while (meminfo >> key >> value >> unit) {
+        if (key == "MemAvailable:") {
+            double gb = value / 1048576.0;
+            return gb;
+        }
+    }
+    }
+
+
+    return 0.0;
+}
 
 
 std::string BuildInfo(){
@@ -149,7 +169,28 @@ std::string BuildInfo(){
     std::string line;
     
     std::getline(build, line);
+    if (line.empty()){
+        return "N/A";
+    }
     return line;
+}
+
+std::string getDistroInfo(){
+
+    std::ifstream file("/etc/os-release");
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.find("PRETTY_NAME") != std::string::npos) {
+            return line.substr(line.find("=") + 1);
+        }
+    }
+
+    return "N/A"; 
+
+}
+
+std::string getBootMode() {
+    return fs::exists("/sys/firmware/efi") ? "UEFI" : "BIOS";
 }
 
 void ExportToFile(){
@@ -178,8 +219,12 @@ void ExportToFile(){
     file << "Kernel:             " << getKernelInfo() << "\n";
     file << "Default Shell:      " << shell() << "\n";
     file << "Build Info:         " << BuildInfo() << "\n";
+    file << "Boot Mode:          " << getBootMode() << "\n";
     file << "Package Manager:    " << getPackageManager() << "\n";
-
+    file << "Distro name:        " << getDistroInfo() << "\n";
+    file << "Secure Boot state:  " << CheckSecureBoot() << "\n";
+    file << "Total RAM:          " << getRAMInfo("RAM") << "GB" << "\n";
+    file << "Free RAM:           " <<  getRAMInfo("FREE") << "GB" << "\n";
     file.close();
 }
 
@@ -194,7 +239,7 @@ int main(int argc, char *argv[]){
     if (argc > 1) {
             std::string arg1 = argv[1];
 
-            if (arg1 == "--export-to-file" || "--export" || "-export") {
+            if (arg1 == "--export-to-file" || arg1 == "-export" || arg1 == "--export") {
                 ExportToFile();
                 exit(0);
             } else {
@@ -209,13 +254,11 @@ int main(int argc, char *argv[]){
     const std::string CYAN   = "\033[36m";
     const std::string YELLOW = "\033[33m";
     const std::string RESET  = "\033[0m";
+    const std::string MAGENTA = "\033[35m";
 
     std::cout << BLUE << "CPU Model:          " << RESET << CPU.getCPUName() << "\n";
     std::cout << BLUE << "CPU Cores:          " << RESET << CPU.getCPUCores() << "\n";
     std::cout << BLUE << "CPU Vendor:         " << RESET << CPU.getCPUVendor() << "\n";
-
-    meminfo();
-    CheckSecureBoot(); 
 
     std::cout << RED << "BIOS/UEFI Vendor:   " << RESET << bios.getBIOSVendor() << "\n";
     std::cout << RED << "BIOS/UEFI Version:  " << RESET << bios.getBIOSVersion() << "\n";
@@ -231,8 +274,12 @@ int main(int argc, char *argv[]){
     std::cout << YELLOW << "Kernel:             " << RESET << getKernelInfo() << "\n";
     std::cout << YELLOW << "Default Shell:      " << RESET << shell() << "\n";
     std::cout << YELLOW << "Build Info:         " << RESET << BuildInfo() << "\n";
+    std::cout << YELLOW << "Boot Mode:          " << RESET << getBootMode() << "\n";
     std::cout << YELLOW << "Package Manager:    " << RESET << getPackageManager() << "\n";
 
-
+    std::cout << MAGENTA << "Distro name:       " << RESET << getDistroInfo() << "\n";
+    std::cout << MAGENTA << "Secure Boot state:  " << RESET << CheckSecureBoot() << "\n"; 
+    std::cout << MAGENTA << "Total RAM:          " << RESET << getRAMInfo("RAM") << "GB" <<"\n";
+    std::cout << MAGENTA << "Free RAM:           " << RESET << getRAMInfo("FREE") << "GB" << "\n";
 
 }
