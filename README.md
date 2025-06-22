@@ -10,20 +10,16 @@ A Simple tool to see your system info for almost all Linux distro
 - Shows Package manager name
 - Doesn't need sudo privileges
 - Allows user to export the output to a file
-
+- Shows the distro name
+- Shows RAM info (How much ram there is and how much is free)
 ## Compatibility
 This program works with most distros out of the box, but distros like alpine and containers are not supported due to alpine missing some stuff and the same for containers but VM's are semi supported
 
 Tested distros:
-- Fedora
-- Debian
-- Arch
-- OpenSUSE
-
-
-## Unstable and beta version
-The Unstable/Beta version of 1.2 is not available yet
-
+- Fedora (Real Hardware)
+- Debian (Real Hardware)
+- Arch (Virtual Machine)
+- OpenSUSE (Virtual Machine)
 
 
 ## Building
