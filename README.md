@@ -18,8 +18,9 @@ This program works with most distros out of the box, but distros like alpine and
 Tested distros:
 - Fedora (Real Hardware)
 - Debian (Real Hardware)
-- Arch (Virtual Machine)
-- OpenSUSE (Virtual Machine)
+- Arch (Real Hardware)
+- OpenSUSE (Real Hardware)
+- Kali Linux (Real Hardware)
 
 
 ## Building
