@@ -9,6 +9,7 @@
 #include <memory>
 #include <stdexcept>
 #include <array>
+#include <chrono>
 
 namespace fs = std::filesystem;
 
@@ -91,11 +92,31 @@ private:
 
 
 
-std::string CheckSecureBoot(){
-    std::string output = exec("mokutil --sb-state | tr -d '\n'");
-    return output;
-}
 
+std::string CheckSecureBoot() {
+    const fs::path varsPath = "/sys/firmware/efi/vars";
+
+    if (!fs::exists("/sys/firmware/efi") || !fs::exists(varsPath)) {
+        return "N/A"; // Not UEFI or vars missing
+    }
+
+    std::error_code ec; // for non-throwing versions
+    for (auto& entry : fs::directory_iterator(varsPath, fs::directory_options::skip_permission_denied, ec)) {
+        if (ec) continue; // skip entries we can't open
+
+        std::string fname = entry.path().filename().string();
+        if (fname.find("SecureBoot-") != std::string::npos) {
+            std::ifstream file(entry.path() / "data", std::ios::binary);
+            if (file) {
+                char val;
+                file.read(&val, 1);
+                return (val != 0) ? "Enabled" : "Disabled";
+            }
+        }
+    }
+
+    return "N/A";
+}
 
 
 
@@ -113,35 +134,52 @@ std::string getKernelInfo(){
 
 
 std::string shell(){
-
-    system("ps -p $$ -o comm= > shell.txt");
-
-    std::ifstream file("shell.txt");
-    std::string line;
-    std::getline(file, line);
-    std::remove("shell.txt");
-    return line;
+    const char* sh = getenv("SHELL");
+    return sh ? std::string(sh) : "N/A";
 }
+
 
 
 std::string getPackageManager() {
     const std::vector<std::pair<std::string, std::string>> managers = {
         {"apt", "/usr/bin/apt"},
+        {"apt-get", "/usr/bin/apt-get"},
         {"dnf", "/usr/bin/dnf"},
         {"yum", "/usr/bin/yum"},
         {"pacman", "/usr/bin/pacman"},
+        {"yay", "/usr/bin/yay"},
+        {"paru", "/usr/bin/paru"},
         {"zypper", "/usr/bin/zypper"},
         {"emerge", "/usr/bin/emerge"},
-        {"nix", "/run/current-system/sw/bin/nix-env"}
+        {"nix", "/run/current-system/sw/bin/nix-env"},
+        {"snap", "/usr/bin/snap"},
+        {"flatpak", "/usr/bin/flatpak"},
+        {"apk", "/sbin/apk"},
+        {"brew", "/home/linuxbrew/.linuxbrew/bin/brew"},
+        {"brew", "/usr/bin/brew"},
+        {"conda", "/usr/bin/conda"},
+        {"pip", "/usr/bin/pip"},
+        {"pkg", "/usr/sbin/pkg"},
+        {"guix", "/usr/bin/guix"}
     };
+
+    std::vector<std::string> foundManagers;
 
     for (const auto& [name, path] : managers) {
         if (fs::exists(path)) {
-            return name;
+            foundManagers.push_back(name);
         }
     }
+        if (foundManagers.empty()) {
+        return "unknown";
+    }
 
-    return "unknown";
+    std::ostringstream oss;
+    for (size_t i = 0; i < foundManagers.size(); ++i) {
+        if (i) oss << ", ";
+        oss << foundManagers[i];
+    }
+    return oss.str();
 }
 
 
@@ -301,7 +339,7 @@ void ExportToFile(){
     file << "Product Name:       " << Motherboard.getProductName() << "\n";
 
     file << "Kernel:             " << getKernelInfo() << "\n";
-    file << "Default Shell:      " << shell() << "\n";
+    file << "Default Shell:      " << shell();
     file << "Build Info:         " << BuildInfo() << "\n";
     file << "Boot Mode:          " << getBootMode() << "\n";
     file << "Package Manager:    " << getPackageManager() << "\n";
@@ -357,6 +395,7 @@ void ExportToJSON() {
 
 
 int main(int argc, char *argv[]){
+    auto start = std::chrono::high_resolution_clock::now();
 
     BIOSInfo bios;
     MotherboardInfo Motherboard;
@@ -418,6 +457,12 @@ int main(int argc, char *argv[]){
     std::cout << MAGENTA << "Secure Boot state:  " << RESET << CheckSecureBoot() << "\n"; 
     std::cout << MAGENTA << "Total RAM:          " << RESET << getRAMInfo("RAM") << "GB" <<"\n";
     std::cout << MAGENTA << "Free RAM:           " << RESET << getRAMInfo("FREE") << "GB" << "\n";
+    
+    auto end = std::chrono::high_resolution_clock::now();
 
+    // Calculate duration in milliseconds
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+    std::cout << "Execution time: " << duration.count() << " microseconds\n";
 
 }                                                
